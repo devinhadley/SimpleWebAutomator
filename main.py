@@ -1,0 +1,79 @@
+import os
+import json
+from modules.parser import Parser
+from modules.converter import Converter
+
+
+def main():
+    def create_configuration(driver, driver_directory):
+        default_config = {"driver": driver, "directory": driver_directory}
+        data = json.dumps(default_config)
+        config_file = open("config.json", "w")
+        config_file.write(data)
+        config_file.close()
+        return default_config
+
+    def retrieve_configuration():
+        with open('config.json') as file:
+            return json.load(file)
+
+    def show_scripts():
+        os.system("clear")
+        files = os.listdir("./scripts")
+        for val in files:
+            print(val)
+        print("-----------")
+
+    # Load configuration.
+    try:
+        config = retrieve_configuration()
+    except FileNotFoundError:
+        print("Enter driver name. ex: geckodriver")
+        driver = input()
+        os.system("clear")
+        print("Enter the driver directory.")
+        driver_directory = input()
+        config = create_configuration(driver, driver_directory)
+
+    while True:
+        os.system("clear")
+        print("v - view scripts")
+        print("c - create script")
+        print("p - parse script")
+        print("cs - create selenium script")
+        print("Welcome, please enter command.")
+        user_input = input()
+
+        if user_input == "v":
+            show_scripts()
+            user_input = input("Please press enter to continue. ")
+        elif user_input == "c":
+            os.system("clear")
+            print("Enter new file name.")
+            user_input = input()
+            try:
+                file = open(f'scripts/{user_input}.txt', 'x')
+            except Exception as e:
+                print(e)
+                print("Press enter to continue....")
+                user_input = input()
+        elif user_input == "p":
+            os.system("clear")
+            user_input = input("Enter file name.")
+            parsed_document = Parser(open(f'scripts/{user_input}.txt', "r")).parse_and_return_commands()
+            for val in parsed_document:
+                print(val)
+            input("Press enter to continue")
+        elif user_input == "cs":
+            os.system("clear")
+            user_input = input("Please enter script name.")
+            os.system("clear")
+            file_name = input("Please enter filename for new converted selenium script.")
+            parsed_document = Parser(open(f'scripts/{user_input}.txt', "r")).parse_and_return_commands()
+            convert_document = Converter(parsed_document, file_name, config)
+            convert_document.create_python_script()
+            convert_document.write_selenium_code()
+
+
+if __name__ == '__main__':
+    main()
