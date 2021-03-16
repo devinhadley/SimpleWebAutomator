@@ -1,18 +1,10 @@
 class Parser:
     def __init__(self, doc):
-        """
-        :param doc:
-        :type text file
-        """
+
         self.document = doc
+        self.commands = None
 
-    def parse_and_return_commands(self):
-        """
-        :return: Three dimensional array of command, variable, and argument respectively.
-
-        Text document must end with space.
-        """
-
+        # Parse commands from document.
         commands = []
         for line in self.document:
             phrases = line.split()
@@ -23,20 +15,38 @@ class Parser:
                         phrases.pop(i)
                     break
             commands.append(phrases)
-        return commands
-
-
-
-
-
+        self.commands = commands
 
     def check_command_syntax(self):
-        """
 
-        Verifies there are no syntax errors on the document.
-        :return: Dictionary with error data.
-        """
-        self.document
-        return {"Error Type": "Line"}
+        global valid_variable
+        errors = {}
 
-    # return a list of commands which is then processed by selenium port.
+        # Check for correct number of command/variables/arguments.
+        for index, command in enumerate(self.commands):
+            if command[0] == "click":
+                if len(command) != 2:
+                    errors[f'{index + 1} - Invalid word count: '] = "Invalid number of words. Should be click (item)."
+            else:
+                if len(command) != 3:
+                    errors[
+                        f'{index + 1} - Invalid word count: '] = f"Invalid number of words. Should be {command[0]} (item) (argument). "
+
+            if errors != {}:
+                return errors
+
+            # Check that all "variables" is declared.
+            if command[0] == "click" or command[0] == "type":
+
+                for item in self.commands[:index]:
+                    valid_variable = False
+                    if command[1] == item[1] and item[0] == "find":
+                        valid_variable = True
+                        break
+
+                if not valid_variable:
+                    errors[
+                        f'{index + 1} - Item {command[1]} not found. '] = "Use command find (item) (xpath) before " \
+                                                                          "preforming action. "
+
+        return errors

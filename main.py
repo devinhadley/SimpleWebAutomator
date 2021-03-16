@@ -24,6 +24,13 @@ def main():
             print(val)
         print("-----------")
 
+    def show_selenium_scripts():
+        os.system("clear")
+        files = os.listdir("./selenium_scripts")
+        for val in files:
+            print(val)
+        print("-----------")
+
     # Load configuration.
     try:
         config = retrieve_configuration()
@@ -41,6 +48,7 @@ def main():
         print("c - create script")
         print("p - parse script")
         print("cs - create selenium script")
+        print("r - run selenium script")
         print("Welcome, please enter command.")
         user_input = input()
 
@@ -58,21 +66,56 @@ def main():
                 print("Press enter to continue....")
                 user_input = input()
         elif user_input == "p":
-            os.system("clear")
+            show_scripts()
             user_input = input("Enter file name.")
-            parsed_document = Parser(open(f'scripts/{user_input}.txt', "r")).parse_and_return_commands()
-            for val in parsed_document:
+            parsed_document = Parser(open(f'scripts/{user_input}.txt', "r"))
+            os.system("clear")
+            for val in parsed_document.commands:
                 print(val)
             input("Press enter to continue")
         elif user_input == "cs":
             os.system("clear")
-            user_input = input("Please enter script name.")
+            show_scripts()
+            user_input = input("Please enter script name: ")
+            try:
+                file = open(f'scripts/{user_input}.txt', "r")
+            except FileNotFoundError:
+                os.system("clear")
+                print("File not found, press enter to continue.")
+                input()
+                continue
+
             os.system("clear")
-            file_name = input("Please enter filename for new converted selenium script.")
-            parsed_document = Parser(open(f'scripts/{user_input}.txt', "r")).parse_and_return_commands()
-            convert_document = Converter(parsed_document, file_name, config)
+            parsed_document = Parser(open(f'scripts/{user_input}.txt', "r"))
+            errors = parsed_document.check_command_syntax()
+            if errors != {}:
+                for item in errors:
+                    print(item, errors[item])
+                input("Press enter to continue.")
+                continue
+            convert_document = Converter(parsed_document.commands, user_input, config)
             convert_document.create_python_script()
             convert_document.write_selenium_code()
+        elif user_input == "r":
+            show_scripts()
+            user_input = input("Type name of script you wish to run: ")
+            parsed_document = Parser(open(f'scripts/{user_input}.txt', "r"))
+            errors = parsed_document.check_command_syntax()
+            if errors != {}:
+                os.system("clear")
+                for item in errors:
+                    print(item, errors[item])
+                input("Press enter to continue.")
+                continue
+            os.system(f"cd ./selenium_scripts && python3 {user_input}.py")
+
+            if errors == {}:
+                print("No errors reported!")
+            else:
+                for item in errors:
+                    print(item, errors[item])
+
+            input()
 
 
 if __name__ == '__main__':

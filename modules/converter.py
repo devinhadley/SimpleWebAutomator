@@ -29,7 +29,8 @@ class Converter:
             structured_command = self.selenium_commands[command[0]]
             index = structured_command.index(")")
             if len(command) == 3:
-                command_with_argument = structured_command[:index] + "\"" + command[2] + "\"" + structured_command[index:]
+                command_with_argument = structured_command[:index] + "\"" + command[2] + "\"" + structured_command[
+                                                                                                index:]
             else:
                 command_with_argument = structured_command
 
@@ -39,9 +40,10 @@ class Converter:
             index = structured_command.index(")")
             if command[0] == "wait":
                 command_with_argument = structured_command[:index] + command[2] + structured_command[
-                                                                                                index:]
+                                                                                  index:]
             else:
-                command_with_argument = structured_command[:index] + "\"" + command[2] + "\"" + structured_command[index:]
+                command_with_argument = structured_command[:index] + "\"" + command[2] + "\"" + structured_command[
+                                                                                                index:]
             return f'\t{command_with_argument}'
 
     def create_python_script(self):
