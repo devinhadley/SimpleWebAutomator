@@ -1,0 +1,10 @@
+open site https://www.youtube.com/
+wait seconds 2
+repeat 5
+find search /html/body/ytd-app/div/div/ytd-masthead/div[3]/div[2]/ytd-searchbox/form/div/div[1]/input
+find button /html/body/ytd-app/div/div/ytd-masthead/div[3]/div[2]/ytd-searchbox/form/button
+type search Hello, world!
+click button
+wait seconds 1
+end
+type search Woah, that was sick!

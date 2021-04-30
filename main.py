@@ -4,32 +4,33 @@ from modules.parser import Parser
 from modules.converter import Converter
 
 
+def create_configuration(driver, driver_directory):
+    default_config = {"driver": driver, "directory": driver_directory}
+    data = json.dumps(default_config)
+    config_file = open("config.json", "w")
+    config_file.write(data)
+    config_file.close()
+    return default_config
+
+def retrieve_configuration():
+    with open('config.json') as file:
+        return json.load(file)
+
+def show_scripts():
+    os.system("clear")
+    files = os.listdir("./scripts")
+    for val in files:
+        print(val)
+    print("-----------")
+
+def show_selenium_scripts():
+    os.system("clear")
+    files = os.listdir("./selenium_scripts")
+    for val in files:
+        print(val)
+    print("-----------")
+
 def main():
-    def create_configuration(driver, driver_directory):
-        default_config = {"driver": driver, "directory": driver_directory}
-        data = json.dumps(default_config)
-        config_file = open("config.json", "w")
-        config_file.write(data)
-        config_file.close()
-        return default_config
-
-    def retrieve_configuration():
-        with open('config.json') as file:
-            return json.load(file)
-
-    def show_scripts():
-        os.system("clear")
-        files = os.listdir("./scripts")
-        for val in files:
-            print(val)
-        print("-----------")
-
-    def show_selenium_scripts():
-        os.system("clear")
-        files = os.listdir("./selenium_scripts")
-        for val in files:
-            print(val)
-        print("-----------")
 
     # Load configuration.
     try:
@@ -108,14 +109,8 @@ def main():
                 input("Press enter to continue.")
                 continue
             os.system(f"cd ./selenium_scripts && python3 {user_input}.py")
+            input("Press enter to continue....")
 
-            if errors == {}:
-                print("No errors reported!")
-            else:
-                for item in errors:
-                    print(item, errors[item])
-
-            input()
 
 
 if __name__ == '__main__':

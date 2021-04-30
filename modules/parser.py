@@ -4,7 +4,7 @@ class Parser:
         self.document = doc
         self.commands = None
 
-        # Parse commands from document.
+        # Parse commands from document, store as attribute.
         commands = []
         for line in self.document:
             phrases = line.split()
@@ -27,6 +27,14 @@ class Parser:
             if command[0] == "click":
                 if len(command) != 2:
                     errors[f'{index + 1} - Invalid word count: '] = "Invalid number of words. Should be click (item)."
+            elif command[0] == "repeat":
+                if(len(command) != 2):
+                    errors[
+                        f'{index + 1} - Invalid word count: '] = f"Invalid argument count. Should be repeat (num repeats)"
+            elif command[0] == "end":
+                if(len(command) != 1):
+                    errors[
+                        f'{index + 1} - Invalid word count: '] = f"Invalid argument count. Should be stop"
             else:
                 if len(command) != 3:
                     errors[
@@ -35,7 +43,7 @@ class Parser:
             if errors != {}:
                 return errors
 
-            # Check that all "variables" is declared.
+            # Check that all "variables" are declared.
             if command[0] == "click" or command[0] == "type":
 
                 for item in self.commands[:index]:
