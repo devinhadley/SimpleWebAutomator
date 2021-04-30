@@ -8,7 +8,7 @@ if __name__ == "__main__":
 	time.sleep(2)
 	button = driver.find_element_by_xpath("/html/body/div[1]/div[3]/form/div[2]/div[1]/div[3]/center/input[1]")
 	button.click()
-	text = driver.find_element_by_xpath("/html/body/div[1]/div[3]/form/div[2]/div[1]/div[3]/center/input[1]")
-	for i in range(5):
+	for i in range(10):
+		text = driver.find_element_by_xpath("/html/body/div[1]/div[3]/form/div[2]/div[1]/div[3]/center/input[1]")
 		text.send_keys("Hello")
 	

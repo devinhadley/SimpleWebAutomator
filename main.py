@@ -1,7 +1,6 @@
 import os
 import json
-from modules.parser import Parser
-from modules.converter import Converter
+from modules.modules import Parser, Converter
 
 
 def create_configuration(driver, driver_directory):

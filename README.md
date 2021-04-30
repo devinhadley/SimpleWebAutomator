@@ -1,5 +1,5 @@
 # SimpleWebAutomator
-<h2>Create web automation scripts with no programming knowledge. Converts txt documents with basic syntax to selenium scripts.</h2>
+<h4>Create web automation scripts with no programming knowledge. Converts txt documents with basic syntax to selenium scripts.</h4>
 <hr>
 <h4>Currently Supported Commands</h4>
 <ul>
