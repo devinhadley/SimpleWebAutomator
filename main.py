@@ -49,8 +49,7 @@ def main():
         print("v - view scripts")
         print("c - create script")
         print("p - parse script")
-        print("cs - create selenium script")
-        print("r - run selenium script")
+        print("r - run script")
         print("Welcome, please enter command.")
         user_input = input()
 
@@ -77,42 +76,23 @@ def main():
             for val in parsed_document:
                 print(val)
             input("Press enter to continue")
-        elif user_input == "cs":
+        elif user_input == "r":
             os.system(CLEAR)
             show_scripts()
             user_input = input("Please enter script name: ")
             try:
-                open(f'scripts/{user_input}.txt', "r")
-            except FileNotFoundError:
-                os.system(CLEAR)
-                print("File not found, press enter to continue.")
+                open(f'selenium_scripts/{user_input}.py', "r")
+                modules.run_selenium_script(user_input, config)
+                input()
+
+            # If the file is not found.
+            except IOError:
+                if not modules.create_selenium_script(user_input, config):
+                    # If creating the script fails.
+                    input('Press any key to continue')
+
                 input()
                 continue
-            os.system(CLEAR)
-            parsed_document = modules.parse_document(open(f'scripts/{user_input}.txt', "r"))
-            errors = modules.check_command_syntax(parsed_document)
-            if errors != {}:
-                for item in errors:
-                    print(item, errors[item])
-                input("Press enter to continue.")
-                continue
-            python_commands = modules.convert_commands(parsed_document)
-            modules.create_python_script(config, user_input)
-            modules.write_selenium_code(user_input, python_commands)
-        elif user_input == "r":
-            os.system(CLEAR)
-            show_scripts()
-            user_input = input("Type name of script you wish to run: ")
-            parsed_document = modules.parse_document(open(f'scripts/{user_input}.txt', "r"))
-            errors = modules.check_command_syntax(parsed_document)
-            if errors != {}:
-                os.system(CLEAR)
-                for item in errors:
-                    print(item, errors[item])
-                input("Press enter to continue.")
-                continue
-            os.system(f"cd ./selenium_scripts && python3 {user_input}.py")
-            input("Press enter to continue....")
 
 
 if __name__ == '__main__':

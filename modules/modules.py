@@ -1,3 +1,4 @@
+import os
 
 # Stores the commands into an array and returns.
 def parse_document(doc):
@@ -31,7 +32,7 @@ def check_command_syntax(commands):
         elif command[0] == "end":
             if(len(command) != 1):
                 errors[
-                    f'{index + 1} - Invalid word count: '] = f"Invalid argument count. Should be stop"
+                    f'{index + 1} - Invalid word count: '] = "Invalid argument count. Should be stop"
         else:
             if len(command) != 3:
                 errors[
@@ -113,7 +114,7 @@ def convert_commands(commands):
             python_commands.append(format_indentation("", current_indentation))
 
 
-        elif command[0] != "open" and command[0] != "wait":
+        elif command[0] == "click" or command[0] == "type":
             structured_command = selenium_commands[command[0]]
             index = structured_command.index(")")
             if len(command) == 3:
@@ -137,6 +138,8 @@ def convert_commands(commands):
 
     return python_commands
 
+# Creates a python file based on the user's config.
+# Also imports needed modules.
 def create_python_script(config, file_name):
         f = open(f'selenium_scripts/{file_name}.py', "x")
         f.write("import time\n")
@@ -152,4 +155,51 @@ def write_selenium_code(file_name, commands):
     f = open(f'selenium_scripts/{file_name}.py', "a")
     for command in commands:
         f.write(f'{str(command)}\n')
+
+# Creates a selenium script using commands derived from txt file.
+# Returns true if success, false if not.
+def create_selenium_script(file_name, config):
+
+    # Create the script.
+    create_python_script(config, file_name)
+
+    # If anything fails, want to delete the Python script.
+    try:
+        document = open(f'scripts/{file_name}.txt')
+
+        # Parse the commands.
+        commands = parse_document(document)
+
+        # Check for errors.
+        errors = check_command_syntax(commands)
+        if errors != {}:
+            for error in errors:
+                print(error, errors[error])
+                return False
+
+        # Convert commands to python.
+        converted_commands = convert_commands(commands)
+
+        # Write python code to the existing file.
+        write_selenium_code(file_name, converted_commands)
+
+        os.system(f"cd ./selenium_scripts && python3 {file_name}.py")
+
+
+    except Exception as e:
+        print("An error occured, deleting file:", file_name)
+        os.remove(f'selenium_scripts/{file_name}')
+        print(e+"\n\n")
+
+        return False
+
+
+
+    return True
+
+# Needs to be implemented into main.
+def run_selenium_script(file_name, config):
+        os.remove(f'selenium_scripts/{file_name}.py')
+        create_selenium_script(file_name, config)
+        os.system(f"cd ./selenium_scripts && python3 {file_name}.py")
 
