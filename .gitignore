@@ -138,3 +138,5 @@ scripts/*
 # Config should not make it to repository.
 config.json
 
+# Driver should not make it to repository.
+geckodriver
