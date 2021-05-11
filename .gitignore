@@ -130,3 +130,11 @@ dmypy.json
 
 # MacOS Folder Metadata
 .DS_Store
+
+# Generated selenium_scripts, and scripts should be removed
+selenium_scripts/*
+scripts/*
+
+# Config should not make it to repository.
+config.json
+

@@ -1,6 +1,8 @@
 import os
 
 # Stores the commands into an array and returns.
+# rename lex_document
+# Look into using split(" ", 3)
 def parse_document(doc):
     commands = []
     for line in doc:
@@ -73,22 +75,22 @@ def check_command_syntax(commands):
 
 
 # Format the correct indentation 
+# Use * string instead of looping.
+
 def format_indentation(command, indentation_num):
-    for i in range(int(indentation_num /  4)):
-        command = "\t" + command
-    return command;
+    return "\t" * (indentation_num  // 4) + command;
 
 # Converts the parsed text commands to python code.
 def convert_commands(commands):
 
     selenium_commands = {
 
-        "open": "driver.get()",
-        "find": "driver.find_element_by_xpath()",
+        "open": "driver.get({argument})",
+        "find": "driver.find_element_by_xpath({argument})",
         "click": ".click()",
-        "type": ".send_keys()",
-        "wait": "time.sleep()",
-        "repeat":"for i in range():"
+        "type": ".send_keys({argument})",
+        "wait": "time.sleep({argument})",
+        "repeat":"for i in range({argument}):"
 
     }
 
@@ -97,29 +99,24 @@ def convert_commands(commands):
     for command in commands:
         if command[0] == "find":
             structured_command = selenium_commands["find"]
-            index = structured_command.index(")")
-            command_with_argument = structured_command[:index] + "\"" + command[2] + "\"" + structured_command[index:]
+            command_with_argument = structured_command.format(argument = repr(command[2])) 
             python_commands.append(format_indentation(f'{command[1]} = {command_with_argument}', current_indentation))
 
         elif command[0] == "repeat":
             structured_command = selenium_commands["repeat"]
-            argumentIndex = structured_command.index(")")
-            command_with_argument = structured_command[:argumentIndex] + command[1] + structured_command[argumentIndex:]
+            command_with_argument = structured_command.format(argument = command[1])
             previous_indentation = current_indentation
             current_indentation = current_indentation + 4
             python_commands.append(format_indentation(command_with_argument, previous_indentation))
 
         elif command[0] == "end":
             current_indentation = current_indentation - 4
-            python_commands.append(format_indentation("", current_indentation))
 
 
         elif command[0] == "click" or command[0] == "type":
             structured_command = selenium_commands[command[0]]
-            index = structured_command.index(")")
             if len(command) == 3:
-                command_with_argument = structured_command[:index] + "\"" + command[2] + "\"" + structured_command[
-                                                                                                index:]
+                command_with_argument = structured_command.format(argument = repr(command[2]))
             else:
                 command_with_argument = structured_command
 
@@ -127,17 +124,15 @@ def convert_commands(commands):
 
         else:
             structured_command = selenium_commands[command[0]]
-            index = structured_command.index(")")
             if command[0] == "wait":
-                command_with_argument = structured_command[:index] + command[2] + structured_command[
-                                                                                  index:]
+                command_with_argument = structured_command.format(argument = command[2])
             else:
-                command_with_argument = structured_command[:index] + "\"" + command[2] + "\"" + structured_command[
-                                                                                                index:]
+                command_with_argument = structured_command.format(argument=repr(command[2]))
             python_commands.append(format_indentation(f'{command_with_argument}',current_indentation))
 
     return python_commands
 
+# Combine this into write Selenium code.
 # Creates a python file based on the user's config.
 # Also imports needed modules.
 def create_python_script(config, file_name):
@@ -149,6 +144,7 @@ def create_python_script(config, file_name):
         f.write(f"\tdriver_path = \"{config['directory']}\"\n")
         f.write(f"\tdriver = webdriver.Firefox(executable_path=driver_path)\n")
         f.close()
+
 
 # Writes python commands to a file.
 def write_selenium_code(file_name, commands):
@@ -175,7 +171,7 @@ def create_selenium_script(file_name, config):
         if errors != {}:
             for error in errors:
                 print(error, errors[error])
-                return False
+            return False
 
         # Convert commands to python.
         converted_commands = convert_commands(commands)
@@ -185,10 +181,9 @@ def create_selenium_script(file_name, config):
 
         os.system(f"cd ./selenium_scripts && python3 {file_name}.py")
 
-
     except Exception as e:
         print("An error occured, deleting file:", file_name)
-        os.remove(f'selenium_scripts/{file_name}')
+        os.remove(f'selenium_scripts/{file_name}.py')
         print(e+"\n\n")
 
         return False
@@ -197,9 +192,7 @@ def create_selenium_script(file_name, config):
 
     return True
 
-# Needs to be implemented into main.
 def run_selenium_script(file_name, config):
         os.remove(f'selenium_scripts/{file_name}.py')
         create_selenium_script(file_name, config)
-        os.system(f"cd ./selenium_scripts && python3 {file_name}.py")
 

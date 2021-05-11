@@ -81,6 +81,7 @@ def main():
             show_scripts()
             user_input = input("Please enter script name: ")
             try:
+                # Switch to use .access() to see if file is found.
                 open(f'selenium_scripts/{user_input}.py', "r")
                 modules.run_selenium_script(user_input, config)
                 input()
