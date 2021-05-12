@@ -25,6 +25,16 @@ def retrieve_configuration():
     with open('config.json') as file:
         return json.load(file)
 
+def find_driver_name(driver_directory):
+    driver_name = ""
+    for char in driver_directory[::-1]:
+        if char != "/" and char != "\\":
+            driver_name += char
+        else:
+            return driver_name[::-1]
+
+
+
 # Prints txt scripts in directory.
 def show_scripts():
     files = os.listdir("./scripts")
@@ -40,12 +50,20 @@ def main():
     try:
         config = retrieve_configuration()
     except FileNotFoundError:
-        print("Enter driver name. ex: geckodriver")
-        driver = input()
-        os.system(CLEAR)
         print("Enter the driver directory.")
         driver_directory = input()
-        config = create_configuration(driver, driver_directory)
+        driver_name = find_driver_name(driver_directory)
+        os.system(CLEAR)
+        print("Found", driver_name)
+        print("Is this the correct driver name?")
+        response = input("y for yes, n for no: ")
+        if response == "n":
+            os.system(CLEAR)
+            print("Enter driver name. ex: geckodriver")
+            driver_name = input()
+
+        os.system(CLEAR)
+        config = create_configuration(driver_name, driver_directory)
 
     while True:
         os.system(CLEAR)
