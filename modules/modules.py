@@ -1,9 +1,7 @@
 import os
 
 # Stores the commands into an array and returns.
-# rename lex_document
-# Look into using split(" ", 3)
-def parse_document(doc):
+def lex_document(doc):
     commands = []
     for line in doc:
         phrases = line.split()
@@ -132,39 +130,50 @@ def convert_commands(commands):
 
     return python_commands
 
-# Combine this into write Selenium code.
 # Creates a python file based on the user's config.
 # Also imports needed modules.
+# Returns false if the driver is not supported.
 def create_python_script(config, file_name):
-        f = open(f'selenium_scripts/{file_name}.py', "x")
+    with open(f'selenium_scripts/{file_name}.py', "x") as f:
+        if config['driver'].lower() == "geckodriver":
+            driver_assignment = "\tdriver = webdriver.Firefox(executable_path=PATH)\n" 
+        elif config['driver'].lower() == "chromedriver":
+            driver_assignment = "\tdriver = webdriver.Chrome(executable_path=PATH)\n" 
+        else:
+            return False
         f.write("import time\n")
         f.write("from selenium import webdriver\n")
         f.write("from selenium.webdriver.common.keys import Keys\n")
         f.write("if __name__ == \"__main__\":\n")
-        f.write(f"\tdriver_path = \"{config['directory']}\"\n")
-        f.write(f"\tdriver = webdriver.Firefox(executable_path=driver_path)\n")
+        f.write(f"\tPATH = \"{config['directory']}\"\n")
+        f.write(driver_assignment)
+
         f.close()
+        return True
 
 
 # Writes python commands to a file.
 def write_selenium_code(file_name, commands):
-    f = open(f'selenium_scripts/{file_name}.py', "a")
-    for command in commands:
-        f.write(f'{str(command)}\n')
+    with open(f'selenium_scripts/{file_name}.py', "a") as f:
+        for command in commands:
+            f.write(f'{str(command)}\n')
 
 # Creates a selenium script using commands derived from txt file.
 # Returns true if success, false if not.
 def create_selenium_script(file_name, config):
 
     # Create the script.
-    create_python_script(config, file_name)
+    if not create_python_script(config, file_name):
+        print("Driver is not supported or incorrect driver name.")
+        print("Please ensure the driver name specified in the config is correct.")
+        return False
 
     # If anything fails, want to delete the Python script.
     try:
         document = open(f'scripts/{file_name}.txt')
 
         # Parse the commands.
-        commands = parse_document(document)
+        commands = lex_document(document)
 
         # Check for errors.
         errors = check_command_syntax(commands)

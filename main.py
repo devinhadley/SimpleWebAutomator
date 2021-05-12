@@ -3,13 +3,15 @@ import platform
 import json
 import modules.modules as modules
 
-def retrieve_os_command():
+# Clear command is dependent on OS.
+def retrieve_clear_command():
     if platform.system() == "Linux" or platform.system() == "Darwin":
         return "clear"
     else:
         return "cls"
 
 
+# Creates a config, saves as config.json.
 def create_configuration(driver, driver_directory):
     default_config = {"driver": driver, "directory": driver_directory}
     data = json.dumps(default_config)
@@ -23,7 +25,7 @@ def retrieve_configuration():
     with open('config.json') as file:
         return json.load(file)
 
-
+# Prints txt scripts in directory.
 def show_scripts():
     files = os.listdir("./scripts")
     for val in files:
@@ -32,9 +34,9 @@ def show_scripts():
 
 
 def main():
-    CLEAR = retrieve_os_command()
+    CLEAR = retrieve_clear_command()
 
-    # Load configuration.
+    # Load configuration if it doesnt exist, make it.
     try:
         config = retrieve_configuration()
     except FileNotFoundError:
@@ -44,11 +46,11 @@ def main():
         print("Enter the driver directory.")
         driver_directory = input()
         config = create_configuration(driver, driver_directory)
+
     while True:
         os.system(CLEAR)
         print("v - view scripts")
         print("c - create script")
-        print("p - parse script")
         print("r - run script")
         print("Welcome, please enter command.")
         user_input = input()
@@ -67,15 +69,6 @@ def main():
                 print(e)
                 print("Press enter to continue....")
                 user_input = input()
-        elif user_input == "p":
-            os.system(CLEAR)
-            show_scripts()
-            user_input = input("Enter file name.")
-            parsed_document = modules.parse_document(open(f'scripts/{user_input}.txt', "r"))
-            os.system(CLEAR)
-            for val in parsed_document:
-                print(val)
-            input("Press enter to continue")
         elif user_input == "r":
             os.system(CLEAR)
             show_scripts()
