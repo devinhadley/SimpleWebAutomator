@@ -4,14 +4,16 @@ import os
 def lex_document(doc):
     commands = []
     for line in doc:
-        phrases = line.split()
-        for i, val in enumerate(phrases):
-            if i == 3:
-                for index, item in enumerate(phrases[3:len(phrases)]):
-                    phrases[2] += " " + item
-                    phrases.pop(i)
-                break
-        commands.append(phrases)
+        # Skip empty lines.
+        if not line == "\n":
+            phrases = line.split()
+            for i, val in enumerate(phrases):
+                if i == 3:
+                    for index, item in enumerate(phrases[3:len(phrases)]):
+                        phrases[2] += " " + item
+                        phrases.pop(i)
+                    break
+            commands.append(phrases)
     return commands
 
 
@@ -193,7 +195,7 @@ def create_selenium_script(file_name, config):
     except Exception as e:
         print("An error occured, deleting file:", file_name)
         os.remove(f'selenium_scripts/{file_name}.py')
-        print(e+"\n\n")
+        print(e)
 
         return False
 

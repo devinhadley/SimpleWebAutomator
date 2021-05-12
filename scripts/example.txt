@@ -1,4 +1,4 @@
-repeat 5
+repeat 10
 open site https://www.google.com/
 find box /html/body/div[1]/div[3]/form/div[1]/div[1]/div[1]/div/div[2]/input
 type box Hello, World!
