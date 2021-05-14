@@ -1,5 +1,8 @@
 import os
-
+import sys
+from PyQt5.QtWidgets import QMessageBox
+from io import StringIO
+import contextlib
 # Stores the commands into an array and returns.
 def lex_document(doc):
     commands = []
@@ -95,7 +98,7 @@ def convert_commands(commands):
     }
 
     python_commands = []
-    current_indentation = 4
+    current_indentation = 0
     for command in commands:
         if command[0] == "find":
             structured_command = selenium_commands["find"]
@@ -138,16 +141,15 @@ def convert_commands(commands):
 def create_python_script(config, file_name):
     with open(f'selenium_scripts/{file_name}.py', "x") as f:
         if config['driver'].lower() == "geckodriver":
-            driver_assignment = "\tdriver = webdriver.Firefox(executable_path=PATH)\n" 
+            driver_assignment = "driver = webdriver.Firefox(executable_path=PATH)\n" 
         elif config['driver'].lower() == "chromedriver":
-            driver_assignment = "\tdriver = webdriver.Chrome(executable_path=PATH)\n" 
+            driver_assignment = "driver = webdriver.Chrome(executable_path=PATH)\n" 
         else:
             return False
         f.write("import time\n")
         f.write("from selenium import webdriver\n")
         f.write("from selenium.webdriver.common.keys import Keys\n")
-        f.write("if __name__ == \"__main__\":\n")
-        f.write(f"\tPATH = \"{config['directory']}\"\n")
+        f.write(f"PATH = \"{config['directory']}\"\n")
         f.write(driver_assignment)
 
         f.close()
@@ -159,6 +161,7 @@ def write_selenium_code(file_name, commands):
     with open(f'selenium_scripts/{file_name}.py', "a") as f:
         for command in commands:
             f.write(f'{str(command)}\n')
+
 
 # Creates a selenium script using commands derived from txt file.
 # Returns true if success, false if not.
@@ -180,9 +183,15 @@ def create_selenium_script(file_name, config):
         # Check for errors.
         errors = check_command_syntax(commands)
         if errors != {}:
+            formatted_errors = ""
             for error in errors:
-                print(error, errors[error])
-            return False
+                formatted_errors += error
+                formatted_errors += errors[error] + "\n"
+            error_dialogue = QMessageBox()
+            error_dialogue.setWindowTitle("Syntax Error")
+            error_dialogue.setText(formatted_errors)
+            error_dialogue.exec_()
+            return True
 
         # Convert commands to python.
         converted_commands = convert_commands(commands)
@@ -190,10 +199,28 @@ def create_selenium_script(file_name, config):
         # Write python code to the existing file.
         write_selenium_code(file_name, converted_commands)
 
-        os.system(f"cd ./selenium_scripts && python3 {file_name}.py")
+
+        # Run the script
+        # Redirect the console output to display in UI.
+        old_stdout = sys.stdout
+        redirected_output = sys.stdout = StringIO()
+        exec(open(f"./selenium_scripts/{file_name}.py").read(), globals())
+        sys.stdout = old_stdout
+
+        error_dialogue = QMessageBox()
+        if redirected_output.getvalue() == "":
+            error_dialogue.setText("Selenium reported no issues!")
+        else:
+            error_dialogue.setText(redirected_output.getvalue())
+
+        error_dialogue.exec_()
 
     except Exception as e:
-        print("An error occured, deleting file:", file_name)
+
+        error_dialogue = QMessageBox()
+        error_dialogue.setWindowTitle("Program Error")
+        error_dialogue.setText(str(e))
+        error_dialogue.exec_()
         os.remove(f'selenium_scripts/{file_name}.py')
         print(e)
 
