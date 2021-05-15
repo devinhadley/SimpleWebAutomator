@@ -7,12 +7,15 @@ import os
 import modules.modules as modules
 import threading
 
+# Main user interface.
 class Main(QtWidgets.QMainWindow, Ui_mainWindow):
     def __init__(self, parent = None):
         super(Main, self).__init__(parent)
         self.setupUi(self)
         self.update_dropdown_selections()
-        self.update_code_editor_text()
+        # Check number of scripts in scripts directory.
+        if len([item for item in os.listdir('scripts') if item[0] != "."]) > 0:
+            self.update_code_editor_text()
 
         # Signals
         self.comboBox.currentTextChanged.connect(self.on_combobox_changed)
@@ -59,7 +62,7 @@ class Main(QtWidgets.QMainWindow, Ui_mainWindow):
             modules.create_selenium_script(self.current_script_name, config)
 
 
-# Widgets should inherit QWidget
+# Directory specification pop up window.
 class Directory(QtWidgets.QWidget, Ui_Directory):
     def __init__(self, parent = None):
         super(Directory, self).__init__(parent)
@@ -93,9 +96,14 @@ class Directory(QtWidgets.QWidget, Ui_Directory):
 
 if __name__ == '__main__':
 
+    # Ensure needed directories are present. Creaes them if not.
+    if not os.path.isdir("scripts"):
+        os.mkdir("scripts")
+
+    if not os.path.isdir("selenium_scripts"):
+        os.mkdir("selenium_scripts")
 
     app = QtWidgets.QApplication(sys.argv)
-
     main = Main()
 
     # First check for config, display pop up if doesnt exist.
@@ -104,8 +112,6 @@ if __name__ == '__main__':
     except FileNotFoundError:
         dir_window = Directory()
         dir_window.show()
-
-
 
     main.show()
     sys.exit(app.exec_())

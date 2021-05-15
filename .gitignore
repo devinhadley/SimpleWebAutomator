@@ -136,4 +136,5 @@ config.json
 
 # Driver should not make it to repository.
 geckodriver
+chromedriver
 geckodriver.log
