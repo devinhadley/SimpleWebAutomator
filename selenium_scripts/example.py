@@ -1,7 +1,7 @@
 import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-PATH = "/Users/devinhadley/Desktop/geckodriver"
+PATH = "/Users/devinhadley/Development/Python/SimpleWebAutomator/geckodriver"
 driver = webdriver.Firefox(executable_path=PATH)
 for i in range(2):
 	driver.get('https://www.google.com/')

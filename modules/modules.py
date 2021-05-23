@@ -2,7 +2,8 @@ import os
 import sys
 from PyQt5.QtWidgets import QMessageBox
 from io import StringIO
-import contextlib
+
+
 # Stores the commands into an array and returns.
 def lex_document(doc):
     commands = []
@@ -26,31 +27,36 @@ def check_command_syntax(commands):
     errors = {}
 
     # Check for correct number of command/variables/arguments.
+    # Check if command is a supported command.
     for index, command in enumerate(commands):
         if command[0] == "click":
             if len(command) != 2:
                 errors[f'{index + 1} - Invalid word count: '] = "Invalid number of words. Should be click (item)."
         elif command[0] == "repeat":
-            if(len(command) != 2):
+            if len(command) != 2:
                 errors[
                     f'{index + 1} - Invalid word count: '] = f"Invalid argument count. Should be repeat (num repeats)"
         elif command[0] == "end":
-            if(len(command) != 1):
+            if len(command) != 1:
                 errors[
                     f'{index + 1} - Invalid word count: '] = "Invalid argument count. Should be stop"
-        else:
+        elif command[0] == "find" or command[0] == "type" or command[0] == "open":
             if len(command) != 3:
                 errors[
                     f'{index + 1} - Invalid word count: '] = f"Invalid number of words. Should be {command[0]} (item) (argument). "
+        else:
+            errors[
+                f'{index + 1} - Invalid command'] = f" \"{command[0]}\" not recognized."
 
-        if errors != {}:
-            return errors
+    if errors != {}:
+        return errors
 
-        # Check that all "variables" are declared.
+    # Check that all DOM elements are declared.
+    for index, command in enumerate(commands):
         if command[0] == "click" or command[0] == "type":
             valid_variable = False
             for item in commands[:index]:
-                if item[0] == "find" and command[1] == item[1]: 
+                if item[0] == "find" and command[1] == item[1]:
                     valid_variable = True
                     break
 
@@ -59,33 +65,34 @@ def check_command_syntax(commands):
                     f'{index + 1} - Item {command[1]} not found. '] = "Use command find (item) (xpath) before " \
                                                                       "preforming action. "
 
-    # Check that repeats have a coresponding end.
+    # Check that repeats have a corresponding end.
     # This check should only run once.
 
-    endsToFind = 0
+    ends_to_find = 0
     for index, command in enumerate(commands):
         if command[0] == "repeat":
-            endsToFind += 1
+            ends_to_find += 1
         if command[0] == "end":
-            endsToFind -= 1 
-    if endsToFind < 0:
-        errors['Too many ends. Missing corresponding repeat statements'] = "Make sure you don\'t have any extra end commands."
-    elif endsToFind > 0:
-        errors['Missing ends. Repeat needs end statement.'] = "Make sure you have a corresponding end with your repeat command."
+            ends_to_find -= 1
+    if ends_to_find < 0:
+        errors[
+            'Too many ends. Missing corresponding repeat statements'] = "Make sure you don\'t have any extra end commands."
+    elif ends_to_find > 0:
+        errors[
+            'Missing ends. Repeat needs end statement.'] = "Make sure you have a corresponding end with your repeat command."
 
     return errors
 
 
-
-# Format the correct indentation 
+# Format the correct indentation
 # Use * string instead of looping.
 
 def format_indentation(command, indentation_num):
-    return "\t" * (indentation_num  // 4) + command;
+    return "\t" * (indentation_num // 4) + command
+
 
 # Converts the parsed text commands to python code.
 def convert_commands(commands):
-
     selenium_commands = {
 
         "open": "driver.get({argument})",
@@ -93,7 +100,7 @@ def convert_commands(commands):
         "click": ".click()",
         "type": ".send_keys({argument})",
         "wait": "time.sleep({argument})",
-        "repeat":"for i in range({argument}):"
+        "repeat": "for i in range({argument}):"
 
     }
 
@@ -102,12 +109,12 @@ def convert_commands(commands):
     for command in commands:
         if command[0] == "find":
             structured_command = selenium_commands["find"]
-            command_with_argument = structured_command.format(argument = repr(command[2])) 
+            command_with_argument = structured_command.format(argument=repr(command[2]))
             python_commands.append(format_indentation(f'{command[1]} = {command_with_argument}', current_indentation))
 
         elif command[0] == "repeat":
             structured_command = selenium_commands["repeat"]
-            command_with_argument = structured_command.format(argument = command[1])
+            command_with_argument = structured_command.format(argument=command[1])
             previous_indentation = current_indentation
             current_indentation = current_indentation + 4
             python_commands.append(format_indentation(command_with_argument, previous_indentation))
@@ -115,35 +122,35 @@ def convert_commands(commands):
         elif command[0] == "end":
             current_indentation = current_indentation - 4
 
-
         elif command[0] == "click" or command[0] == "type":
             structured_command = selenium_commands[command[0]]
             if len(command) == 3:
-                command_with_argument = structured_command.format(argument = repr(command[2]))
+                command_with_argument = structured_command.format(argument=repr(command[2]))
             else:
                 command_with_argument = structured_command
 
-            python_commands.append(format_indentation(f'{command[1]}{command_with_argument}',current_indentation))
+            python_commands.append(format_indentation(f'{command[1]}{command_with_argument}', current_indentation))
 
         else:
             structured_command = selenium_commands[command[0]]
             if command[0] == "wait":
-                command_with_argument = structured_command.format(argument = command[2])
+                command_with_argument = structured_command.format(argument=command[2])
             else:
                 command_with_argument = structured_command.format(argument=repr(command[2]))
-            python_commands.append(format_indentation(f'{command_with_argument}',current_indentation))
+            python_commands.append(format_indentation(f'{command_with_argument}', current_indentation))
 
     return python_commands
+
 
 # Creates a python file based on the user's config.
 # Also imports needed modules.
 # Returns false if the driver is not supported.
 def create_python_script(config, file_name):
     with open(f'selenium_scripts/{file_name}.py', "x") as f:
-        if config['driver'].lower() == "geckodriver":
-            driver_assignment = "driver = webdriver.Firefox(executable_path=PATH)\n" 
-        elif config['driver'].lower() == "chromedriver":
-            driver_assignment = "driver = webdriver.Chrome(executable_path=PATH)\n" 
+        if "geckodriver" in config['driver'].lower():
+            driver_assignment = "driver = webdriver.Firefox(executable_path=PATH)\n"
+        elif "chromedriver" in config['driver'].lower():
+            driver_assignment = "driver = webdriver.Chrome(executable_path=PATH)\n"
         else:
             return False
         f.write("import time\n")
@@ -166,7 +173,6 @@ def write_selenium_code(file_name, commands):
 # Creates a selenium script using commands derived from txt file.
 # Returns true if success, false if not.
 def create_selenium_script(file_name, config):
-
     # Create the script.
     if not create_python_script(config, file_name):
         print("Driver is not supported or incorrect driver name.")
@@ -199,7 +205,6 @@ def create_selenium_script(file_name, config):
         # Write python code to the existing file.
         write_selenium_code(file_name, converted_commands)
 
-
         # Run the script
         # Redirect the console output to display in UI.
         old_stdout = sys.stdout
@@ -226,11 +231,9 @@ def create_selenium_script(file_name, config):
 
         return False
 
-
-
     return True
 
-def run_selenium_script(file_name, config):
-        os.remove(f'selenium_scripts/{file_name}.py')
-        create_selenium_script(file_name, config)
 
+def run_selenium_script(file_name, config):
+    os.remove(f'selenium_scripts/{file_name}.py')
+    create_selenium_script(file_name, config)
