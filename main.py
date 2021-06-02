@@ -69,21 +69,19 @@ class Main(QtWidgets.QMainWindow, Ui_mainWindow):
     def create_script(self, file_num):
         if not file_num:
             file_num = 1
-        file_location = "scripts/script"+str(file_num)+".txt"
+        file_location = "scripts/script" + str(file_num) + ".txt"
         if os.path.isfile(file_location):
             self.create_script(file_num + 1)
         else:
             with open(file_location, 'w') as fp:
                 pass
-                self.comboBox.addItem("script"+str(file_num)+".txt")
-
+                self.comboBox.addItem("script" + str(file_num) + ".txt")
 
     def delete_script(self):
         # self so window not destroyed by Python garbage collection
         self.delete_prompt = ConfirmDelete(self)
         self.delete_prompt.show()
         print("x")
-
 
 
 # Directory specification pop up window.
@@ -117,6 +115,7 @@ class Directory(QtWidgets.QWidget, Ui_Directory):
             else:
                 return driver_name[::-1]
 
+
 class ConfirmDelete(QtWidgets.QWidget, Ui_ConfirmDelete):
     def __init__(self, main, parent=None):
         super(ConfirmDelete, self).__init__(parent)
@@ -129,7 +128,6 @@ class ConfirmDelete(QtWidgets.QWidget, Ui_ConfirmDelete):
         # Signals
         self.pushButton.clicked.connect(self.close)
         self.pushButton_2.clicked.connect(self.delete_file)
-
 
     def delete_file(self):
         os.remove(f"scripts/{self.file_name}.txt")

@@ -85,8 +85,6 @@ def check_command_syntax(commands):
 
 
 # Format the correct indentation
-# Use * string instead of looping.
-
 def format_indentation(command, indentation_num):
     return "\t" * (indentation_num // 4) + command
 
@@ -96,7 +94,9 @@ def convert_commands(commands):
     selenium_commands = {
 
         "open": "driver.get({argument})",
-        "find": "driver.find_element_by_xpath({argument})",
+        "find": """WebDriverWait(driver, 5).until(
+        EC.presence_of_element_located((By.XPATH, {argument}))
+    )""",
         "click": ".click()",
         "type": ".send_keys({argument})",
         "wait": "time.sleep({argument})",
@@ -156,6 +156,9 @@ def create_python_script(config, file_name):
         f.write("import time\n")
         f.write("from selenium import webdriver\n")
         f.write("from selenium.webdriver.common.keys import Keys\n")
+        f.write(f"from selenium.webdriver.common.by import By\n")
+        f.write(f"from selenium.webdriver.support.ui import WebDriverWait\n")
+        f.write(f"from selenium.webdriver.support import expected_conditions as EC\n")
         f.write(f"PATH = \"{config['directory']}\"\n")
         f.write(driver_assignment)
 
