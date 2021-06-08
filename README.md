@@ -20,6 +20,5 @@
 <hr>
 <h4>Images</h4>
 <ul>
-   <img src="https://i.ibb.co/yVPnd63/img2.png"></img>
-   <img src="https://i.ibb.co/YZVbgKc/Untitled.png"></img>
+   <img src="https://i.ibb.co/60bNpqX/pic1.png"></img>
 </ul>
