@@ -6,13 +6,13 @@ from user_interface.directory import Ui_Directory
 from user_interface.confirm_delete import Ui_ConfirmDelete
 import json
 import os
-import modules.modules as modules
+import conversion_modules.modules as modules
 
 
 # Main user interface.
-class Main(QtWidgets.QMainWindow, Ui_mainWindow):
+class TextEditor(QtWidgets.QMainWindow, Ui_mainWindow):
     def __init__(self, parent=None):
-        super(Main, self).__init__(parent)
+        super(TextEditor, self).__init__(parent)
         self.setupUi(self)
         self.update_dropdown_selections()
 
@@ -117,13 +117,15 @@ class Directory(QtWidgets.QWidget, Ui_Directory):
 
 
 class ConfirmDelete(QtWidgets.QWidget, Ui_ConfirmDelete):
-    def __init__(self, main, parent=None):
+    def __init__(self, text_editor, parent=None):
         super(ConfirmDelete, self).__init__(parent)
         self.setupUi(self)
         # Make it so only confirmation selection can be clicked.
         self.setWindowModality(QtCore.Qt.ApplicationModal)
 
-        self.file_name = main.current_script_name
+        self.text_editor = text_editor
+
+        self.file_name = text_editor.current_script_name
 
         # Signals
         self.pushButton.clicked.connect(self.close)
@@ -132,28 +134,30 @@ class ConfirmDelete(QtWidgets.QWidget, Ui_ConfirmDelete):
     def delete_file(self):
         os.remove(f"scripts/{self.file_name}.txt")
         self.close()
-        main.update_dropdown_selections()
-        main.update_code_editor_text()
+        self.text_editor.update_dropdown_selections()
+        self.text_editor.update_code_editor_text()
 
-
-if __name__ == '__main__':
+def start_up():
     # Ensure needed directories are present. Creates them if not.
     if not os.path.isdir("scripts"):
         os.mkdir("scripts")
-
     if not os.path.isdir("selenium_scripts"):
         os.mkdir("selenium_scripts")
 
     app = QtWidgets.QApplication(sys.argv)
-    main = Main()
+    text_editor = TextEditor()
 
     # First check for config, display pop up if doesnt exist.
     try:
-        config = main.retrieve_configuration()
+        config = text_editor.retrieve_configuration()
     except FileNotFoundError:
         dir_window = Directory()
         dir_window.show()
 
-    main.show()
-
+    # Display the UI.
+    text_editor.show()
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    start_up()

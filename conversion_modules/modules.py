@@ -143,7 +143,7 @@ def convert_commands(commands):
 
 
 # Creates a python file based on the user's config.
-# Also imports needed modules.
+# Also imports needed conversion_modules.
 # Returns false if the driver is not supported.
 def create_python_script(config, file_name):
     with open(f'selenium_scripts/{file_name}.py', "x") as f:
@@ -194,7 +194,7 @@ def create_selenium_script(file_name, config):
         if errors != {}:
             formatted_errors = ""
             for error in errors:
-                formatted_errors += error
+                formatted_errors += error + " "
                 formatted_errors += errors[error] + "\n"
             error_dialogue = QMessageBox()
             error_dialogue.setWindowTitle("Syntax Error")
