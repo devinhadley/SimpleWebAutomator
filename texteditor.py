@@ -7,6 +7,7 @@ from user_interface.confirm_delete import Ui_ConfirmDelete
 import json
 import os
 import conversion_modules.modules as modules
+from PyQt5.QtWidgets import QMessageBox
 
 
 # Main user interface.
@@ -83,6 +84,11 @@ class TextEditor(QtWidgets.QMainWindow, Ui_mainWindow):
         self.delete_prompt.show()
         print("x")
 
+class EmptyInputException(Exception):
+    """
+    Raised if a field is left empty that shouldn't be.
+    """
+    pass
 
 # Directory specification pop up window.
 class Directory(QtWidgets.QWidget, Ui_Directory):
@@ -94,8 +100,22 @@ class Directory(QtWidgets.QWidget, Ui_Directory):
 
         self.pushButton.clicked.connect(self.create_configuration)
 
+        # enable custom window hint
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.CustomizeWindowHint)
+
+        # disable (but not hide) close button
+        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowCloseButtonHint)    
+
+
     def create_configuration(self):
-        default_config = {"driver": self.find_driver_name(), "directory": self.lineEdit.text()}
+        try:
+            default_config = {"driver": self.find_driver_name(), "directory": self.lineEdit.text()}
+        except EmptyInputException:
+            error_dialogue = QMessageBox()
+            error_dialogue.setWindowTitle("empty directory")
+            error_dialogue.setText("Please enter a directory to the web driver.")
+            error_dialogue.exec_()
+            return None
         data = json.dumps(default_config)
         config_file = open("config.json", "w")
         config_file.write(data)
@@ -107,6 +127,10 @@ class Directory(QtWidgets.QWidget, Ui_Directory):
     def find_driver_name(self):
         # Gets the directory path from UI.
         driver_directory = self.lineEdit.text()
+
+        if not driver_directory:
+            raise EmptyInputException
+
         driver_name = ""
 
         for char in driver_directory[::-1]:
