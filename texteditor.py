@@ -90,6 +90,12 @@ class EmptyInputException(Exception):
     """
     pass
 
+class InvalidDirectoryException(Exception):
+    """
+    Raised if a field is left empty that shouldn't be.
+    """
+    pass
+
 # Directory specification pop up window.
 class Directory(QtWidgets.QWidget, Ui_Directory):
     def __init__(self, parent=None):
@@ -112,10 +118,17 @@ class Directory(QtWidgets.QWidget, Ui_Directory):
             default_config = {"driver": self.find_driver_name(), "directory": self.lineEdit.text()}
         except EmptyInputException:
             error_dialogue = QMessageBox()
-            error_dialogue.setWindowTitle("empty directory")
+            error_dialogue.setWindowTitle("Empty Directory")
             error_dialogue.setText("Please enter a directory to the web driver.")
             error_dialogue.exec_()
-            return None
+            return 
+        except InvalidDirectoryException:
+            error_dialogue = QMessageBox()
+            error_dialogue.setWindowTitle("Invalid Directory")
+            error_dialogue.setText("Please specify a correct driver name in the directory.")
+            error_dialogue.exec_()
+            return
+            
         data = json.dumps(default_config)
         config_file = open("config.json", "w")
         config_file.write(data)
@@ -137,7 +150,18 @@ class Directory(QtWidgets.QWidget, Ui_Directory):
             if char != "/" and char != "\\":
                 driver_name += char
             else:
-                return driver_name[::-1]
+                break
+
+        # Ensure a valid driver name is extracted. 
+        # Report error if not.
+
+        if driver_name[::-1] != "chromedriver" and driver_name != "geckodriver":
+            print(driver_name[::-1])
+            raise InvalidDirectoryException
+
+        return driver_name[::-1]
+
+
 
 
 class ConfirmDelete(QtWidgets.QWidget, Ui_ConfirmDelete):
